@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task 3 - AI Music Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0c29;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    .task-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+    }
+
+    .task-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .task-desc {
+      font-size: 15px;
+      color: #94a3b8;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .card {
+      background: #1e1b4b;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 600px;
+      border: 1px solid #312e81;
+      text-align: center;
+    }
+
+    .music-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      display: block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.08); }
+    }
+
+    .card h2 {
+      font-size: 22px;
+      color: #e2e8f0;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* Info boxes */
+    .info-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .info-box {
+      background: #312e81;
+      border-radius: 12px;
+      padding: 14px 10px;
+    }
+
+    .info-box .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .info-box .label {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Buttons */
+    .btn-generate {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-generate:hover    { background: #6d28d9; }
+    .btn-generate:disabled { background: #4c1d95; cursor: not-allowed; }
+
+    .btn-download {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      background: transparent;
+      color: #a78bfa;
+      border: 1.5px solid #7c3aed;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+    }
+
+    .btn-download:hover {
+      background: #7c3aed;
+      color: white;
+    }
+
+    /* Status */
+    .status {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.loading {
+      background: #1e3a5f;
+      color: #60a5fa;
+      display: block;
+    }
+
+    .status.success {
+      background: #14532d;
+      color: #4ade80;
+      display: block;
+    }
+
+    .status.error {
+      background: #7f1d1d;
+      color: #f87171;
+      display: block;
+    }
+
+    /* Waveform animation */
+    .waveform {
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 4px;
+      height: 40px;
+      margin: 20px 0;
+    }
+
+    .waveform.active { display: flex; }
+
+    .bar {
+      width: 6px;
+      background: #7c3aed;
+      border-radius: 3px;
+      animation: wave 1s infinite ease-in-out;
+    }
+
+    .bar:nth-child(1) { animation-delay: 0.0s; height: 20px; }
+    .bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+    .bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+    .bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+    .bar:nth-child(5) { animation-delay: 0.4s; height: 35px; }
+    .bar:nth-child(6) { animation-delay: 0.5s; height: 20px; }
+    .bar:nth-child(7) { animation-delay: 0.6s; height: 30px; }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); }
+      50%       { transform: scaleY(1.0); }
+    }
+
+    .badge {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .badge span {
+      background: #1e1b4b;
+      border: 1px solid #312e81;
+      border-radius: 20px;
+      padding: 4px 14px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="task-label">Task 3</div>
+  <div class="task-title">AI Music Generator</div>
+  <div class="task-desc">Classical music generated using LSTM + Markov Chain model</div>
+
+  <div class="card">
+
+    <span class="music-icon">🎵</span>
+
+    <h2>Generate Classical Music</h2>
+    <p>Click the button below to generate a unique classical music piece using AI. The model learned patterns from real MIDI files!</p>
+
+    <div class="info-row">
+      <div class="info-box">
+        <div class="value">200</div>
+        <div class="label">Notes Generated</div>
+      </div>
+      <div class="info-box">
+        <div class="value">LSTM</div>
+        <div class="label">Model Type</div>
+      </div>
+      <div class="info-box">
+        <div class="value">MIDI</div>
+        <div class="label">Output Format</div>
+      </div>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generateMusic()">
+      🎼 Generate Music
+    </button>
+
+    <button class="btn-download" id="downloadBtn" onclick="downloadMusic()">
+      ⬇️ Download MIDI File
+    </button>
+
+    <div class="waveform" id="waveform">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+  </div>
+
+  <div class="badge">
+    <span>Powered by music21 + NumPy Markov Chain</span>
+  </div>
+
+<script>
+  const generateBtn = document.getElementById('generateBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const statusEl   = document.getElementById('status');
+  const waveform   = document.getElementById('waveform');
+
+  async function generateMusic() {
+    generateBtn.disabled = true;
+    generateBtn.textContent = '⏳ Generating...';
+    downloadBtn.style.display = 'none';
+    waveform.classList.add('active');
+
+    statusEl.className = 'status loading';
+    statusEl.textContent = '🎵 AI is composing your music... Please wait!';
+
+    try {
+      const res  = await fetch('/generate');
+      const data = await res.json();
+
+      waveform.classList.remove('active');
+
+      if (data.status === 'success') {
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ Music generated successfully! Click download to save.';
+        downloadBtn.style.display = 'block';
+      } else {
+        statusEl.className = 'status error';
+        statusEl.textContent = '❌ Error: ' + data.message;
+      }
+    } catch(e) {
+      waveform.classList.remove('active');
+      statusEl.className = 'status error';
+      statusEl.textContent = '❌ Something went wrong. Make sure server is running!';
+    }
+
+    generateBtn.disabled = false;
+    generateBtn.textContent = '🎼 Generate Again';
+  }
+
+  function downloadMusic() {
+    window.location.href = '/download';
+  }
+</script>
+
+</body>
+</html>
